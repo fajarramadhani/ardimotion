@@ -1,6 +1,7 @@
 import {
   BrandMark,
   Header,
+  MobileStickyCta,
   Portfolio,
   Reveal,
   Services,
@@ -178,7 +179,9 @@ export default function HomePage() {
           <nav aria-label="Navigasi footer">
             <a href="#works">Karya</a>
             <a href="#services">Layanan</a>
+            <a href="#studio">Studio</a>
             <a href="#process">Proses</a>
+            <a href="#contact">Kontak</a>
           </nav>
           <div className="footer-socials">
             <SocialLink href={siteConfig.instagramUrl}>Instagram</SocialLink>
@@ -192,7 +195,7 @@ export default function HomePage() {
         </div>
       </footer>
 
-      <WhatsAppLink className="mobile-sticky-cta">Konsultasi Project</WhatsAppLink>
+      <MobileStickyCta />
     </>
   );
 }

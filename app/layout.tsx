@@ -66,16 +66,13 @@ export const metadata: Metadata = {
     description: "Film cinematic untuk motor, mobil, produk, dan brand.",
     images: ["/opengraph-image"],
   },
-  verification: {
-    google: "PLACEHOLDER_GOOGLE_SITE_VERIFICATION",
-  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#1A1A1A",
-  colorScheme: "dark light",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

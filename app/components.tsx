@@ -47,12 +47,35 @@ export function WhatsAppLink({
 export function Header() {
   const [open, setOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    const menuButton = menuButtonRef.current;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusable = menuRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
 
     document.body.classList.add("menu-open");
@@ -62,6 +85,7 @@ export function Header() {
     return () => {
       document.body.classList.remove("menu-open");
       window.removeEventListener("keydown", onKeyDown);
+      menuButton?.focus();
     };
   }, [open]);
 
@@ -78,6 +102,7 @@ export function Header() {
         </nav>
         <WhatsAppLink className="header-cta">Konsultasi Project</WhatsAppLink>
         <button
+          ref={menuButtonRef}
           className="menu-toggle"
           type="button"
           aria-expanded={open}
@@ -89,7 +114,15 @@ export function Header() {
         </button>
       </div>
 
-      <div id="mobile-menu" className={`mobile-menu${open ? " is-open" : ""}`} aria-hidden={!open}>
+      <div
+        ref={menuRef}
+        id="mobile-menu"
+        className={`mobile-menu${open ? " is-open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigasi utama"
+        aria-hidden={!open}
+      >
         <div className="mobile-menu-top shell">
           <BrandMark />
           <button ref={closeButtonRef} className="menu-close" type="button" onClick={() => setOpen(false)}>
@@ -195,7 +228,7 @@ export function Portfolio() {
         </p>
       </div>
 
-      <div className="shell portfolio-filters" aria-label="Filter kategori karya">
+      <div className="shell portfolio-filters" role="group" aria-label="Filter kategori karya">
         {portfolioCategories.map((category) => (
           <button
             key={category.id}
@@ -209,7 +242,10 @@ export function Portfolio() {
         ))}
       </div>
 
-      <div className="shell portfolio-list" aria-live="polite">
+      <p className="visually-hidden" role="status" aria-live="polite">
+        {visibleItems.length} karya ditampilkan.
+      </p>
+      <div className="shell portfolio-list">
         {visibleItems.map((item) => (
           <article className="project" key={item.id}>
             <div className={`project-media media-placeholder ${item.visualClass}`}>
@@ -247,14 +283,6 @@ export function Portfolio() {
 export function Services() {
   const [active, setActive] = useState(0);
 
-  const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
-    const expanded = active === index;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      setActive(expanded ? -1 : index);
-    }
-  };
-
   return (
     <div className="services-list">
       {services.map((service, index) => {
@@ -267,7 +295,6 @@ export function Services() {
               aria-expanded={expanded}
               aria-controls={`service-panel-${index}`}
               onClick={() => setActive(expanded ? -1 : index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
             >
               <span className="service-number">{service.number}</span>
               <span className="service-title-wrap">
@@ -287,6 +314,40 @@ export function Services() {
         );
       })}
     </div>
+  );
+}
+
+export function MobileStickyCta() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const updateVisibility = () => {
+      frame = 0;
+      const hero = document.getElementById("top");
+      const contact = document.getElementById("contact");
+      if (!hero || !contact) return;
+
+      setVisible(hero.getBoundingClientRect().bottom <= 0 && contact.getBoundingClientRect().top > window.innerHeight * 0.72);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateVisibility);
+    };
+
+    updateVisibility();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <WhatsAppLink className={`mobile-sticky-cta${visible ? " is-visible" : ""}`}>
+      Konsultasi Project
+    </WhatsAppLink>
   );
 }
 
