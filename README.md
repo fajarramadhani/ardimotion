@@ -24,7 +24,7 @@ npm run build
 ## Struktur File
 
 - `app/page.tsx`: markup utama dan urutan section landing page.
-- `app/components.tsx`: navigation, filter portfolio, accordion layanan, showreel, reveal animation, dan link WhatsApp.
+- `app/components.tsx`: navigation, filter portfolio, lazy Google Drive player, accordion layanan, showreel, reveal animation, dan link WhatsApp.
 - `app/data.ts`: seluruh konfigurasi brand, link, layanan, proses, dan daftar portfolio.
 - `app/globals.css`: design system, layout responsif, placeholder visual, hover, dan motion.
 - `app/layout.tsx`: font, SEO metadata, Open Graph, Twitter Card, dan viewport.
@@ -69,27 +69,57 @@ Ubah `siteConfig.showreelUrl` di `app/data.ts`. Nilai `null` sengaja menampilkan
 
 Untuk video lokal, letakkan file terkompresi di `public/video/`. Jika ingin player di dalam halaman, ganti poster pada komponen `Showreel` dengan elemen `<video controls preload="none">` dan tetap sediakan poster serta subtitle bila ada dialog.
 
-### `[DAFTAR_PORTOFOLIO]`
+### Video portfolio Google Drive
 
-Ubah array `portfolioItems` di `app/data.ts`:
+Setiap video wajib dibagikan dengan pengaturan berikut agar player bekerja bagi pengunjung:
+
+```text
+General access: Anyone with the link
+Role: Viewer
+```
+
+Jangan gunakan akses `Restricted`, `Editor`, atau `Commenter`. Uji link melalui jendela Incognito tanpa login untuk memastikan video tidak hanya dapat dibuka oleh pemilik akun.
+
+> **Peringatan keamanan:** folder `PROJECT ARDI` saat ini terdeteksi menggunakan `Anyone with the link -> Writer`. Pemilik Drive wajib mengubah izin publik folder tersebut menjadi `Anyone with the link -> Viewer`. Website tidak dan tidak boleh mengubah permission Google Drive melalui kode.
+
+Ambil File ID dari bagian di antara `/d/` dan `/view` pada link file. Jangan gunakan link folder.
+
+```text
+Link:        https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/view?usp=sharing
+File ID:     1AbCdEfGhIjKlMnOpQrStUvWxYz
+Preview URL: https://drive.google.com/file/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/preview
+```
+
+Tambahkan File ID, bukan kode iframe atau URL lengkap, ke `portfolioItems` di `app/data.ts`:
 
 ```ts
 {
   id: "project-slug",
   number: "01",
   category: "motorcycle",
-  categoryLabel: "Motorcycle Film / Custom Build",
-  title: "Judul Project",
+  categoryLabel: "Automotive / Speedramp",
+  title: "Judul Karya",
   description: "Deskripsi singkat project.",
-  scope: "Direction / Production / Edit / Color / Sound",
-  visualClass: "visual-motorcycle",
-  mediaSrc: "/images/portfolio/project-cover.webp",
+  scope: "Edit / Compositing / Color / Sound",
+  visualClass: "visual-car",
+  mediaSrc: "/portfolio/project-cover.webp",
   mediaAlt: "Deskripsi visual yang spesifik",
-  projectUrl: "https://..."
+  driveFileId: "1AbCdEfGhIjKlMnOpQrStUvWxYz",
+  orientation: "portrait"
 }
 ```
 
-Jika `mediaSrc` belum ada, kartu menampilkan placeholder visual. Jika `projectUrl` belum ada, kartu menampilkan `Case study coming soon` dan tidak membuat tombol palsu.
+Simpan poster WebP atau AVIF di `public/portfolio` dengan target ukuran sekitar 100-250 KB. Jangan gunakan link Drive sebagai `mediaSrc`. Jika poster belum ada, kartu mempertahankan placeholder cinematic. Jika `driveFileId` belum ada, kartu menampilkan status profesional tanpa tombol play palsu.
+
+Player memakai URL Drive `/preview` dan baru membuat iframe setelah tombol `Putar Film` ditekan. Link `/view` tersedia di modal sebagai fallback jika browser memblokir third-party cookies atau preview belum selesai diproses.
+
+Checklist sebelum publikasi:
+
+1. Pastikan link berasal dari file video, bukan folder.
+2. Pastikan aksesnya `Anyone with the link` dan perannya `Viewer`.
+3. Buka link `/view` dan `/preview` melalui Incognito tanpa login.
+4. Tunggu pemrosesan Google Drive selesai jika preview belum dapat diputar.
+5. Pastikan `driveFileId` tidak memuat `/view`, query string, atau URL lengkap.
 
 ## Aset yang Disarankan
 
@@ -97,7 +127,7 @@ Jika `mediaSrc` belum ada, kartu menampilkan placeholder visual. Jika `projectUr
 - Hero mobile: WebP/AVIF 4:5 atau 9:16 dengan crop khusus.
 - Poster showreel: WebP/AVIF 16:9 atau 2.35:1.
 - Thumbnail portfolio: WebP/AVIF 16:10 desktop dan crop 4:5 mobile.
-- Video: WebM/MP4 terkompresi, versi bitrate desktop dan mobile.
+- Video: disimpan di Google Drive dan diputar melalui Drive preview; jangan masukkan video besar ke repository.
 
 Placeholder CSS berada di `app/globals.css`. Setelah aset asli tersedia, hero dapat memakai `<picture>` atau `next/image` dan portfolio sudah mendukung `mediaSrc` langsung dari data.
 
@@ -114,6 +144,7 @@ Placeholder CSS berada di `app/globals.css`. Setelah aset asli tersedia, hero da
 - Semantic section, heading hierarchy, skip link, focus state, dan keyboard controls sudah tersedia.
 - Animasi menghormati `prefers-reduced-motion`.
 - Tidak ada video autoplay atau aset stock berat dalam initial load.
-- Portfolio image memakai lazy loading ketika `mediaSrc` diisi.
+- Portfolio image memakai `next/image` dan lazy loading ketika `mediaSrc` diisi.
+- Tidak ada request Google Drive atau iframe sebelum pengunjung menekan `Putar Film`.
 - Tidak ada informasi penting yang hanya tersedia melalui hover.
 - Layout menggunakan `overflow-x: clip` dan breakpoint khusus mobile untuk mencegah horizontal overflow.
