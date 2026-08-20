@@ -27,55 +27,98 @@ export type PortfolioCategory = (typeof portfolioCategories)[number]["id"];
 export type PortfolioItem = {
   id: string;
   number: string;
-  category: Exclude<PortfolioCategory, "all">;
+  category: "motorcycle" | "car" | "product";
   categoryLabel: string;
   title: string;
   description: string;
   scope: string;
   visualClass: string;
   mediaSrc?: string;
-  mediaAlt?: string;
-  projectUrl?: string;
+  mediaAlt: string;
+  driveFileId?: string;
+  orientation: "portrait" | "landscape";
 };
 
-// PLACEHOLDER: [DAFTAR_PORTOFOLIO]
-// Ganti objek di bawah dengan karya asli. Isi mediaSrc dan projectUrl ketika aset tersedia.
+// TODO: Konfirmasi deskripsi dan scope final karya 02-06 dengan Ardi.
 export const portfolioItems: PortfolioItem[] = [
   {
-    id: "built-beyond-standard",
+    id: "speedramp-krakenn",
     number: "01",
     category: "motorcycle",
-    categoryLabel: "Motorcycle Film / Custom Build",
-    title: "Built Beyond Standard",
+    categoryLabel: "Motorcycle / Speedramp",
+    title: "Speedramp Krakenn",
     description:
-      "Portrait film yang menangkap detail mesin, tekstur, dan karakter sebuah custom motorcycle.",
-    scope: "Direction / Production / Edit / Color / Sound",
+      "Automotive edit dengan ritme agresif, compositing, dan visual treatment yang memberi impact sejak frame pertama.",
+    scope: "Edit / Compositing / Speedramp / Color / Sound",
     visualClass: "visual-motorcycle",
-    mediaAlt: "Cinematic frame dari custom motorcycle film menampilkan detail mesin dan tekstur",
+    mediaAlt: "Preview karya motorcycle Speedramp Krakenn",
+    driveFileId: "188Xcz-fn426xS4ZUv6LYnEi9QizfEWw2",
+    orientation: "portrait",
   },
   {
-    id: "motion-after-dark",
+    id: "jj-vaby-vs-varky",
     number: "02",
-    category: "car",
-    categoryLabel: "Car Film / Automotive Portrait",
-    title: "Motion After Dark",
-    description:
-      "Movement terkontrol, refleksi tajam, dan pace yang dibangun mengikuti presence kendaraan.",
-    scope: "Production / Rolling Shots / Edit / Color / Sound",
-    visualClass: "visual-car",
-    mediaAlt: "Automotive portrait film dengan movement dinamis dan refleksi lighting",
+    category: "motorcycle",
+    categoryLabel: "Motorcycle / Creative Edit",
+    title: "JJ Vaby vs Varky",
+    description: "Detail karya dan creative treatment sedang menunggu konfirmasi.",
+    scope: "Scope perlu dikonfirmasi",
+    visualClass: "visual-motorcycle",
+    mediaAlt: "Preview karya JJ Vaby vs Varky",
+    driveFileId: "1S08Nvg1L3IfWkdE-qpznoAIeZzFtWylz",
+    orientation: "portrait",
   },
   {
-    id: "form-meets-desire",
+    id: "speedramp-amarti",
     number: "03",
-    category: "product",
-    categoryLabel: "Product & Brand Film",
-    title: "Form Meets Desire",
-    description:
-      "Visual produk yang mengubah material, bentuk, dan fungsi menjadi sesuatu yang terasa bernilai.",
-    scope: "Concept / Art Direction / Production / Post",
-    visualClass: "visual-product",
-    mediaAlt: "Product cinematography dengan fokus pada material, bentuk, dan detail produk",
+    category: "car",
+    categoryLabel: "Automotive / Speedramp",
+    title: "Speedramp Amarti",
+    description: "Detail karya dan creative treatment sedang menunggu konfirmasi.",
+    scope: "Scope perlu dikonfirmasi",
+    visualClass: "visual-car",
+    mediaAlt: "Preview karya Speedramp Amarti",
+    driveFileId: "184Atv9yvnffdgYcUwh9JmvTPvRPygV_U",
+    orientation: "portrait",
+  },
+  {
+    id: "el-neraka",
+    number: "04",
+    category: "motorcycle",
+    categoryLabel: "Motorcycle / Visual Effects",
+    title: "El Neraka",
+    description: "Detail karya dan creative treatment sedang menunggu konfirmasi.",
+    scope: "Scope perlu dikonfirmasi",
+    visualClass: "visual-motorcycle",
+    mediaAlt: "Preview karya motorcycle El Neraka",
+    driveFileId: "16r7uxRiYBAiqsP6XVQMAYyqygakKTUeC",
+    orientation: "portrait",
+  },
+  {
+    id: "speedramp-v4",
+    number: "05",
+    category: "motorcycle",
+    categoryLabel: "Motorcycle / Speedramp",
+    title: "Speedramp V4",
+    description: "Detail karya dan creative treatment sedang menunggu konfirmasi.",
+    scope: "Scope perlu dikonfirmasi",
+    visualClass: "visual-motorcycle",
+    mediaAlt: "Preview karya motorcycle Speedramp V4",
+    driveFileId: "10DAiQUGIt-fKMqsqF1ViWrYsRqlWjSjl",
+    orientation: "portrait",
+  },
+  {
+    id: "speedramp-casper",
+    number: "06",
+    category: "car",
+    categoryLabel: "Automotive / Speedramp",
+    title: "Speedramp Casper",
+    description: "Detail karya dan creative treatment sedang menunggu konfirmasi.",
+    scope: "Scope perlu dikonfirmasi",
+    visualClass: "visual-car",
+    mediaAlt: "Preview karya Speedramp Casper",
+    driveFileId: "1fSVlg1IMl_ekWhNsdpwuIIQKfXovzZCZ",
+    orientation: "portrait",
   },
 ];
 
@@ -179,4 +222,12 @@ export function getWhatsAppUrl(message: string) {
 
 export function getExternalUrl(url: string) {
   return url.startsWith("[") ? "#contact" : url;
+}
+
+export function getDrivePreviewUrl(fileId: string) {
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
+export function getDriveViewUrl(fileId: string) {
+  return `https://drive.google.com/file/d/${fileId}/view`;
 }

@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import {
+  getDrivePreviewUrl,
+  getDriveViewUrl,
   getExternalUrl,
   getWhatsAppUrl,
   portfolioCategories,
@@ -9,6 +12,7 @@ import {
   services,
   siteConfig,
   type PortfolioCategory,
+  type PortfolioItem,
 } from "./data";
 
 const navigation = [
@@ -21,8 +25,14 @@ const navigation = [
 export function BrandMark({ inverse = false }: { inverse?: boolean }) {
   return (
     <a className={`brand-mark${inverse ? " brand-mark-dark" : ""}`} href="#top" aria-label="ARDI MOTION, kembali ke atas">
-      <strong>{siteConfig.brandName}</strong>
-      <span>{siteConfig.descriptor}</span>
+      <Image
+        src="/img/LOGO_ARDIUNN.png"
+        alt="ARDI MOTION"
+        className="brand-logo"
+        width={1080}
+        height={1080}
+        sizes="(max-width: 1080px) 8rem, 10rem"
+      />
     </a>
   );
 }
@@ -212,15 +222,65 @@ export function Showreel() {
 
 export function Portfolio() {
   const [activeCategory, setActiveCategory] = useState<PortfolioCategory>("all");
+  const [activeVideo, setActiveVideo] = useState<PortfolioItem | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const videoTriggerRef = useRef<HTMLButtonElement | null>(null);
   const visibleItems = portfolioItems.filter(
     (item) => activeCategory === "all" || item.category === activeCategory,
   );
+
+  const openVideo = (item: PortfolioItem, trigger: HTMLButtonElement) => {
+    if (!item.driveFileId) return;
+    videoTriggerRef.current = trigger;
+    setActiveVideo(item);
+  };
+
+  const closeVideo = () => setActiveVideo(null);
+
+  useEffect(() => {
+    if (!activeVideo?.driveFileId) return;
+
+    const trigger = videoTriggerRef.current;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeVideo();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.body.classList.add("video-open");
+    closeButtonRef.current?.focus();
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.classList.remove("video-open");
+      window.removeEventListener("keydown", onKeyDown);
+      trigger?.focus();
+    };
+  }, [activeVideo]);
 
   return (
     <section className="works section-dark" id="works" aria-labelledby="works-title">
       <div className="shell section-heading split-heading">
         <div>
-          <p className="eyebrow">Selected Works / 01-03</p>
+          <p className="eyebrow">Selected Works / 01-06</p>
           <h2 id="works-title">Karya yang berbicara lewat detail.</h2>
         </div>
         <p className="section-intro">
@@ -250,32 +310,100 @@ export function Portfolio() {
           <article className="project" key={item.id}>
             <div className={`project-media media-placeholder ${item.visualClass}`}>
               {item.mediaSrc ? (
-                // Native img keeps portfolio data editable without configuring remote image hosts.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.mediaSrc} alt={item.mediaAlt ?? item.title} loading="lazy" />
+                <Image
+                  src={item.mediaSrc}
+                  alt={item.mediaAlt}
+                  fill
+                  sizes="(max-width: 960px) 100vw, 72vw"
+                  loading="lazy"
+                />
               ) : (
                 <>
                   <span className="media-label">[DAFTAR_PORTOFOLIO] / {item.number}</span>
                   <div className="visual-object" aria-hidden="true" />
                 </>
               )}
+              {item.driveFileId ? (
+                <button
+                  className="project-play"
+                  type="button"
+                  onClick={(event) => openVideo(item, event.currentTarget)}
+                  aria-label={`Putar ${item.title}`}
+                >
+                  <PlayIcon /> <span>Putar Film</span>
+                </button>
+              ) : (
+                <p className="project-media-status">Video sedang disiapkan</p>
+              )}
+              {!item.mediaSrc && item.driveFileId ? (
+                <p className="project-media-status">Preview film tersedia</p>
+              ) : null}
             </div>
             <div className="project-copy">
               <p className="project-index">{item.number} / {item.categoryLabel}</p>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
               <p className="project-scope">{item.scope}</p>
-              {item.projectUrl ? (
-                <a className="text-link" href={item.projectUrl} target="_blank" rel="noreferrer">
-                  Lihat Project <ArrowIcon />
-                </a>
-              ) : (
-                <span className="project-pending">Case study coming soon</span>
-              )}
+              {!item.driveFileId ? <span className="project-pending">Video sedang disiapkan</span> : null}
             </div>
           </article>
         ))}
+        {visibleItems.length === 0 ? (
+          <div className="portfolio-empty" role="status">
+            <p className="eyebrow">Selected Works / Coming Soon</p>
+            <h3>Karya kategori produk sedang disiapkan.</h3>
+          </div>
+        ) : null}
       </div>
+
+      {activeVideo?.driveFileId ? (
+        <div
+          className="video-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="video-modal-title"
+        >
+          <button
+            className="video-backdrop"
+            type="button"
+            onClick={closeVideo}
+            aria-label="Tutup video"
+          />
+          <div
+            ref={dialogRef}
+            className={`video-dialog video-dialog-${activeVideo.orientation}`}
+          >
+            <div className="video-dialog-header">
+              <div>
+                <p>{activeVideo.categoryLabel}</p>
+                <h3 id="video-modal-title">{activeVideo.title}</h3>
+              </div>
+              <button ref={closeButtonRef} type="button" onClick={closeVideo}>
+                Tutup <CloseIcon />
+              </button>
+            </div>
+            <div className="video-frame">
+              <iframe
+                src={getDrivePreviewUrl(activeVideo.driveFileId)}
+                title={`Video ${activeVideo.title}`}
+                allow="autoplay; fullscreen"
+                allowFullScreen
+              />
+            </div>
+            <div className="video-fallback">
+              <p>Tidak dapat memutar preview?</p>
+              <a
+                className="text-link"
+                href={getDriveViewUrl(activeVideo.driveFileId)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Buka video di Google Drive <ArrowIcon />
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
